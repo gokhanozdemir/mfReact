@@ -1,5 +1,6 @@
 var React = require('react');
-var ReactDOM = require('react-dom');
+//var ReactDOM = require('react-dom');
+//we will use routing
 
 var Main = React.createClass({
   render: function(){
@@ -11,4 +12,6 @@ var Main = React.createClass({
   }
 });
 
-ReactDOM.render(<Main />, document.getElementById('app'))
+//we will use routing
+// ReactDOM.render(<Main />, document.getElementById('app'))
+module.exports = Main;

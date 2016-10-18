@@ -24075,8 +24075,8 @@
 
 	var React = __webpack_require__(1);
 	var Main = __webpack_require__(207);
-	var Home = __webpack_require__(208);
-	var Profile = __webpack_require__(209);
+	var Home = __webpack_require__(209);
+	var Profile = __webpack_require__(210);
 
 	var Router = __webpack_require__(159);
 	var Route = __webpack_require__(159).Route;
@@ -24093,31 +24093,32 @@
 /* 207 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
 	var React = __webpack_require__(1);
+	var SearchGithub = __webpack_require__(208);
 	//var ReactDOM = require('react-dom');
 	//we will use routing
 
 	var Main = React.createClass({
-	  displayName: "Main",
+	  displayName: 'Main',
 
 	  render: function render() {
 	    return React.createElement(
-	      "div",
-	      { className: "main-container" },
+	      'div',
+	      { className: 'main-container' },
 	      React.createElement(
-	        "nav",
-	        { className: "navbar navbar-default", role: "navigation" },
+	        'nav',
+	        { className: 'navbar navbar-default', role: 'navigation' },
 	        React.createElement(
-	          "div",
-	          { className: "col-sm-7 col-sm-offset-2", style: { marginTop: 15 } },
-	          "MENU"
+	          'div',
+	          { className: 'col-sm-7 col-sm-offset-2', style: { marginTop: 15 } },
+	          React.createElement(SearchGithub, null)
 	        )
 	      ),
 	      React.createElement(
-	        "div",
-	        { className: "container" },
+	        'div',
+	        { className: 'container' },
 	        this.props.children
 	      )
 	    );
@@ -24130,6 +24131,55 @@
 
 /***/ },
 /* 208 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(1);
+	var Router = __webpack_require__(159);
+
+	var SearchGithub = React.createClass({
+	  displayName: 'SearchGithub',
+
+	  mixins: [Router.History],
+	  getRef: function getRef(ref) {
+	    this.usernameRef = ref;
+	  },
+	  handleSubmit: function handleSubmit() {
+	    var username = this.usernameRef.value;
+	    this.usernameRef.value = "";
+	    this.history.pushState(null, "/profile/" + username);
+	  },
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      { className: 'col-sm-12' },
+	      React.createElement(
+	        'form',
+	        { onSubmit: this.handleSubmit },
+	        React.createElement(
+	          'div',
+	          { className: 'form-group col-sm-7' },
+	          React.createElement('input', { type: 'text', className: 'form-control', ref: this.getRef })
+	        ),
+	        React.createElement(
+	          'div',
+	          { className: 'form-group col-sm-5' },
+	          React.createElement(
+	            'button',
+	            { type: 'submit', className: 'btn btn-block btn-primary' },
+	            'Search GitHub'
+	          )
+	        )
+	      )
+	    );
+	  }
+	});
+
+	module.exports = SearchGithub;
+
+/***/ },
+/* 209 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -24150,19 +24200,19 @@
 	module.exports = Home;
 
 /***/ },
-/* 209 */
+/* 210 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(1);
 	var Router = __webpack_require__(159);
-	var Repos = __webpack_require__(210);
-	var UserProfile = __webpack_require__(211);
-	var Notes = __webpack_require__(212);
-	var ReactFireMixin = __webpack_require__(215);
-	var Firebase = __webpack_require__(216);
-	var helpers = __webpack_require__(217);
+	var Repos = __webpack_require__(211);
+	var UserProfile = __webpack_require__(212);
+	var Notes = __webpack_require__(213);
+	var ReactFireMixin = __webpack_require__(216);
+	var Firebase = __webpack_require__(217);
+	var helpers = __webpack_require__(218);
 
 	// v3 of react fire:
 	// var config = {
@@ -24187,22 +24237,30 @@
 	  componentDidMount: function componentDidMount() {
 	    // V2 of reactfire
 	    this.ref = new Firebase('https://mfreact-58760.firebaseio.com/');
-	    var childRef = this.ref.child(this.props.params.username);
-
+	    this.init(this.props.params.username);
+	  },
+	  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+	    //console.log("nProps ", nextProps);
+	    this.unbind('notes');
+	    this.init(nextProps.params.username);
+	  },
+	  componentWillUnmount: function componentWillUnmount() {
+	    this.unbind('notes');
+	  },
+	  init: function init(username) {
+	    // V2 of reactfire
+	    var childRef = this.ref.child(username);
 	    // v3 of react fire:
-	    //var childRef= Firebase.database().ref(this.props.params.username);
+	    //var childRef= Firebase.database().ref(username);
 
 	    this.bindAsArray(childRef, 'notes');
 
-	    helpers.getGithubInfo(this.props.params.username).then(function (data) {
+	    helpers.getGithubInfo(username).then(function (data) {
 	      this.setState({
 	        bio: data.bio,
 	        repos: data.repos
 	      });
 	    }.bind(this));
-	  },
-	  componentWillUnmount: function componentWillUnmount() {
-	    this.unbind('notes');
 	  },
 	  handleAddNote: function handleAddNote(newNote) {
 	    //upgrade firebase, with the newNote
@@ -24215,20 +24273,16 @@
 	      React.createElement(
 	        'div',
 	        { className: 'col-md-4' },
-	        'User Profile Component -->',
-	        React.createElement(UserProfile, { username: this.props.params.username, bio: this.state.bio }),
-	        this.props.params.username
+	        React.createElement(UserProfile, { username: this.props.params.username, bio: this.state.bio })
 	      ),
 	      React.createElement(
 	        'div',
 	        { className: 'col-md-4' },
-	        'Repos Component',
 	        React.createElement(Repos, { username: this.props.params.username, repos: this.state.repos })
 	      ),
 	      React.createElement(
 	        'div',
 	        { className: 'col-md-4' },
-	        'Notes Component',
 	        React.createElement(Notes, {
 	          username: this.props.params.username,
 	          notes: this.state.notes,
@@ -24242,7 +24296,7 @@
 	module.exports = Profile;
 
 /***/ },
-/* 210 */
+/* 211 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -24299,7 +24353,7 @@
 	module.exports = Repos;
 
 /***/ },
-/* 211 */
+/* 212 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -24391,14 +24445,14 @@
 	module.exports = UserProfile;
 
 /***/ },
-/* 212 */
+/* 213 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(1);
-	var NotesList = __webpack_require__(213);
-	var AddNote = __webpack_require__(214);
+	var NotesList = __webpack_require__(214);
+	var AddNote = __webpack_require__(215);
 
 	var Notes = React.createClass({
 	  displayName: 'Notes',
@@ -24428,7 +24482,7 @@
 	module.exports = Notes;
 
 /***/ },
-/* 213 */
+/* 214 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -24456,7 +24510,7 @@
 	module.exports = NotesList;
 
 /***/ },
-/* 214 */
+/* 215 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -24499,7 +24553,7 @@
 	module.exports = AddNote;
 
 /***/ },
-/* 215 */
+/* 216 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -24669,7 +24723,7 @@
 	}));
 
 /***/ },
-/* 216 */
+/* 217 */
 /***/ function(module, exports) {
 
 	/*! @license Firebase v2.4.2
@@ -24955,12 +25009,12 @@
 
 
 /***/ },
-/* 217 */
+/* 218 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var axios = __webpack_require__(218);
+	var axios = __webpack_require__(219);
 
 	function getRepos(username) {
 	  return axios.get('https://api.github.com/users/' + username + '/repos?username=95ac33ba6201222a44c6a97e9bf8ea36f5072645');
@@ -24989,23 +25043,23 @@
 	module.exports = helpers;
 
 /***/ },
-/* 218 */
+/* 219 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(219);
+	module.exports = __webpack_require__(220);
 
 /***/ },
-/* 219 */
+/* 220 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var defaults = __webpack_require__(220);
-	var utils = __webpack_require__(221);
-	var dispatchRequest = __webpack_require__(222);
-	var InterceptorManager = __webpack_require__(230);
-	var isAbsoluteURL = __webpack_require__(231);
-	var combineURLs = __webpack_require__(232);
+	var defaults = __webpack_require__(221);
+	var utils = __webpack_require__(222);
+	var dispatchRequest = __webpack_require__(223);
+	var InterceptorManager = __webpack_require__(231);
+	var isAbsoluteURL = __webpack_require__(232);
+	var combineURLs = __webpack_require__(233);
 
 	function Axios (defaultConfig) {
 	  this.defaultConfig = utils.merge({
@@ -25072,7 +25126,7 @@
 	axios.all = function (promises) {
 	  return Promise.all(promises);
 	};
-	axios.spread = __webpack_require__(233);
+	axios.spread = __webpack_require__(234);
 
 	// Expose interceptors
 	axios.interceptors = defaultInstance.interceptors;
@@ -25112,12 +25166,12 @@
 
 
 /***/ },
-/* 220 */
+/* 221 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(221);
+	var utils = __webpack_require__(222);
 
 	var PROTECTION_PREFIX = /^\)\]\}',?\n/;
 	var DEFAULT_CONTENT_TYPE = {
@@ -25180,7 +25234,7 @@
 
 
 /***/ },
-/* 221 */
+/* 222 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -25422,7 +25476,7 @@
 
 
 /***/ },
-/* 222 */
+/* 223 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -25439,11 +25493,11 @@
 	    try {
 	      // For browsers use XHR adapter
 	      if ((typeof XMLHttpRequest !== 'undefined') || (typeof ActiveXObject !== 'undefined')) {
-	        __webpack_require__(223)(resolve, reject, config);
+	        __webpack_require__(224)(resolve, reject, config);
 	      }
 	      // For node use HTTP adapter
 	      else if (typeof process !== 'undefined') {
-	        __webpack_require__(223)(resolve, reject, config);
+	        __webpack_require__(224)(resolve, reject, config);
 	      }
 	    } catch (e) {
 	      reject(e);
@@ -25455,20 +25509,20 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ },
-/* 223 */
+/* 224 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	/*global ActiveXObject:true*/
 
-	var defaults = __webpack_require__(220);
-	var utils = __webpack_require__(221);
-	var buildURL = __webpack_require__(224);
-	var parseHeaders = __webpack_require__(225);
-	var transformData = __webpack_require__(226);
-	var isURLSameOrigin = __webpack_require__(227);
-	var btoa = window.btoa || __webpack_require__(228)
+	var defaults = __webpack_require__(221);
+	var utils = __webpack_require__(222);
+	var buildURL = __webpack_require__(225);
+	var parseHeaders = __webpack_require__(226);
+	var transformData = __webpack_require__(227);
+	var isURLSameOrigin = __webpack_require__(228);
+	var btoa = window.btoa || __webpack_require__(229)
 
 	module.exports = function xhrAdapter(resolve, reject, config) {
 	  // Transform request data
@@ -25545,7 +25599,7 @@
 	  // This is only done if running in a standard browser environment.
 	  // Specifically not if we're in a web worker, or react-native.
 	  if (utils.isStandardBrowserEnv()) {
-	    var cookies = __webpack_require__(229);
+	    var cookies = __webpack_require__(230);
 
 	    // Add xsrf header
 	    var xsrfValue = isURLSameOrigin(config.url) ?
@@ -25596,12 +25650,12 @@
 
 
 /***/ },
-/* 224 */
+/* 225 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(221);
+	var utils = __webpack_require__(222);
 
 	function encode(val) {
 	  return encodeURIComponent(val).
@@ -25670,12 +25724,12 @@
 
 
 /***/ },
-/* 225 */
+/* 226 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(221);
+	var utils = __webpack_require__(222);
 
 	/**
 	 * Parse headers into an object
@@ -25710,12 +25764,12 @@
 
 
 /***/ },
-/* 226 */
+/* 227 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(221);
+	var utils = __webpack_require__(222);
 
 	/**
 	 * Transform the data for a request or a response
@@ -25735,12 +25789,12 @@
 
 
 /***/ },
-/* 227 */
+/* 228 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(221);
+	var utils = __webpack_require__(222);
 
 	module.exports = (
 	  utils.isStandardBrowserEnv() ?
@@ -25809,7 +25863,7 @@
 
 
 /***/ },
-/* 228 */
+/* 229 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -25849,12 +25903,12 @@
 
 
 /***/ },
-/* 229 */
+/* 230 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(221);
+	var utils = __webpack_require__(222);
 
 	module.exports = (
 	  utils.isStandardBrowserEnv() ?
@@ -25908,12 +25962,12 @@
 
 
 /***/ },
-/* 230 */
+/* 231 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(221);
+	var utils = __webpack_require__(222);
 
 	function InterceptorManager() {
 	  this.handlers = [];
@@ -25966,7 +26020,7 @@
 
 
 /***/ },
-/* 231 */
+/* 232 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -25986,7 +26040,7 @@
 
 
 /***/ },
-/* 232 */
+/* 233 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -26004,7 +26058,7 @@
 
 
 /***/ },
-/* 233 */
+/* 234 */
 /***/ function(module, exports) {
 
 	'use strict';

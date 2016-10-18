@@ -28,23 +28,31 @@ var Profile = React.createClass({
   componentDidMount: function(){
     // V2 of reactfire
     this.ref = new Firebase('https://mfreact-58760.firebaseio.com/');
-    var childRef = this.ref.child(this.props.params.username);
-
+    this.init(this.props.params.username);
+  },
+  componentWillReceiveProps: function(nextProps){
+    //console.log("nProps ", nextProps);
+    this.unbind('notes');
+    this.init(nextProps.params.username);
+  },
+  componentWillUnmount: function(){
+    this.unbind('notes');
+  },
+  init: function(username){
+    // V2 of reactfire
+    var childRef = this.ref.child(username);
     // v3 of react fire:
-    //var childRef= Firebase.database().ref(this.props.params.username);
+    //var childRef= Firebase.database().ref(username);
 
     this.bindAsArray(childRef, 'notes');
 
-    helpers.getGithubInfo(this.props.params.username)
+    helpers.getGithubInfo(username)
       .then(function(data){
         this.setState({
           bio: data.bio,
           repos: data.repos
         })
       }.bind(this))
-  },
-  componentWillUnmount: function(){
-    this.unbind('notes');
   },
   handleAddNote: function(newNote){
     //upgrade firebase, with the newNote
@@ -54,16 +62,13 @@ var Profile = React.createClass({
     return(
       <div className="row">
         <div className="col-md-4">
-        User Profile Component -->
         <UserProfile username={this.props.params.username} bio={this.state.bio} />
-        {this.props.params.username}
+        {/* {this.props.params.username} */}
         </div>
         <div className="col-md-4">
-          Repos Component
           <Repos username={this.props.params.username} repos={this.state.repos} />
         </div>
         <div className="col-md-4">
-          Notes Component
           <Notes
             username={this.props.params.username}
             notes={this.state.notes}
